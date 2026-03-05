@@ -1,0 +1,56 @@
+AI Learning Plateform - Use Cases et Fonctionnalités
+====================================================
+
+1. Consulter le catalogue de cours
+---------------------------------
+- Acteurs : Apprenant, Consommateur d'API
+- Objectif : Obtenir la liste complète des cours disponibles sur la plateforme.
+- Endpoint : `GET /api/v1/courses`
+- Description : Retourne un tableau de cours contenant l'identifiant, le titre, la description et la durée (en minutes).
+- Données retournées :
+  - (1) Introduction to Java — "Learn the fundamentals of Java programming language" — 120 minutes
+  - (2) Spring Boot Masterclass — "Master Spring Boot 3.4 with hands-on projects" — 240 minutes
+  - (3) Microservices Architecture — "Design and build scalable microservices" — 180 minutes
+  - (4) Docker and Kubernetes — "Container orchestration for modern applications" — 200 minutes
+- Règles métier : La liste est statique et servie directement par le service `CourseService`.
+
+2. Vérifier l'état opérationnel de la plateforme
+-----------------------------------------------
+- Acteurs : Administrateur, Système de monitoring
+- Objectif : S'assurer que l'API est opérationnelle et obtenir des informations de diagnostic.
+- Endpoint : `GET /api/v1/system-check`
+- Description : Retourne un statut "OK" accompagné du timestamp serveur (format ISO-8601) et du protocole HTTP utilisé pour la requête.
+- Règles métier : Le protocole est extrait de l'objet `HttpServletRequest`.
+
+Fonctionnalités transverses
+---------------------------
+1. Filtre HTTP personnalisé
+   - Composant : `CustomHeaderFilter`
+   - Description : Injecte l'en-tête `X-Protocol-Version` dans toutes les réponses HTTP.
+   - Détail : Valeurs possibles `HTTP/2.0` ou `HTTP/1.1` selon le protocole de la requête.
+
+2. Configuration CORS
+   - Composant : `WebConfig`
+   - Description : Autorise les requêtes cross-origin entrantes depuis `http://localhost:3000` sur tous les endpoints `/api/**`.
+   - Méthodes autorisées : GET, POST, PUT, DELETE, PATCH, OPTIONS.
+   - En-têtes autorisés : * (tous).
+   - Support des cookies / credentials : Activé.
+   - Durée de cache des pré-vols : 3600 secondes.
+
+3. Gestion globale des erreurs
+   - Composant : `GlobalExceptionHandler`
+   - Description : Fournit des réponses normalisées au format `ProblemDetail`.
+   - Cas gérés :
+     - Exceptions génériques (`Exception`) → HTTP 500, titre "Internal Server Error".
+     - `IllegalArgumentException` → HTTP 400, titre "Bad Request".
+   - Métadonnées ajoutées : type d'erreur (URI dédiée) et timestamp (`Instant`).
+
+4. Initialisation applicative
+   - Composant : `AiLearningPlateformApplication`
+   - Description : Classe principale Spring Boot responsable du bootstrap de l'application.
+
+Notes complémentaires
+--------------------
+- L'application est bâtie avec Spring Boot et expose uniquement des endpoints de lecture (GET).
+- Aucun accès à une base de données n'est configuré ; les données de cours sont immuables et définies en mémoire.
+- Les tests unitaires/e2e ne sont pas fournis dans le périmètre actuel.
